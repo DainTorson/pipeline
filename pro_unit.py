@@ -1,7 +1,7 @@
 
 class ProUnit():
 	"""
-	process one pipeline step
+	implements processing unit, which process one pipeline step
 	"""
 
 	def __init__(self):
@@ -11,17 +11,44 @@ class ProUnit():
 		self._empty = True
 		self._counter = 0
 
+	def __str__(self):
+		if self._is_active:
+			regA = list(self._regA)
+			regA.reverse()
+			regB = list(self._regB)
+			regB.reverse()
+			regP = list(self._regP)
+			regP.reverse()
+			return "A: " + " ".join(str(value) for value in regA) + \
+				" " + "B: " +  " ".join(str(value) for value in regB) + \
+				" " + "P: " +  " ".join(str(value) for value in regP)
+		else:
+			return "Inactive"
+
 	def start(self, divident, divider):
+		"""
+		starts processing unit with given parameters
+		"""
 		self._regA = divident
 		self._regB = divider
 		self._regP = [0 for digit in self._regA]
 		self._regP.append(0)
 		self._counter = 0
-		self._empty = False
+		self._active = True
+
+	def reset(self):
+		"""
+		resets all unit's parameters
+		"""
+		self._regA = []
+		self._regB = []
+		self._regP = []
+		self._active = False
+		self._counter = 0
 
 	def shift(self):
 		"""
-		perform shift of pair <regP, regA>
+		performs shift of pair <regP, regA>
 		"""
 		self._regP.pop()
 		self._regP.insert(0, self._regA.pop())
@@ -30,7 +57,6 @@ class ProUnit():
 		"""
 		perform subtraction
 		"""
-
 		copy_subtrahend = list(subtrahend)
 		if len(copy_subtrahend) < len(minuend):
 			while len(copy_subtrahend) != len(minuend):
@@ -47,7 +73,6 @@ class ProUnit():
 		accept first and second as binary values and transfer as boolean value
 		perform single digit addition, return tuple (result, transfer)
 		"""
-
 		value = first + second
 		if transfer:
 			value += 1
@@ -69,7 +94,6 @@ class ProUnit():
 		"""
 		perform addition
 		"""
-
 		copy_first = list(first)
 		copy_second = list(second)
 
@@ -105,13 +129,15 @@ class ProUnit():
 		"""
 		perform one step of non-restoring division
 		"""
+		if not self._is_active:
+			return
 
 		if self.is_regP_positive():
 			self.shift()
-			self._regP = self.subtract(self._regP, self._regB)
+			self._regP = list(self.subtract(self._regP, self._regB))
 		else:
 			self.shift()
-			self._regP = self.add(self._regP, self._regB)
+			self._regP = list(self.add(self._regP, self._regB))
 
 		if self.is_regP_positive():
 			self._regA.insert(0, 1)
@@ -122,9 +148,9 @@ class ProUnit():
 
 		if self._counter == len(self._regA):
 			if not self.is_regP_positive():
-				self._regP = self.add(self._regP, self._regB)
+				self._regP = list(self.add(self._regP, self._regB))
 			self._counter = 0
-			self._empty = True
+			self._active = False
 
 	def get_regP(self):
 		return self._regP
@@ -136,18 +162,8 @@ class ProUnit():
 		return self._regB
 
 	def is_empty(self):
-		return self._empty
+		return not (len(self._regA) > 0 and len(self._regP) > 0)
 
-class Clock():
-	
-	def __init__(self, start_time):
-		self._time = start.time
+	def is_active(self):
+		pass
 
-	def tick(self):
-		"""
-		perform one tick
-		"""
-		self._time += 1
-
-	def get_current_time(self):
-		return self._time

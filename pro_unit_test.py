@@ -1,7 +1,7 @@
 import pro_unit
 
-divident = [1, 0, 0, 0]
-divider = [0, 1, 0, 1]
+divident = [1, 1, 0, 1]
+divider = [0, 1, 1, 0]
 #regP = [0, 0, 0, 0, 0]
 
 print(divident)
@@ -16,6 +16,7 @@ unit = pro_unit.ProUnit()
 unit.start(divident, divider)
 
 for dummy_idx in range(len(divident)):
+	print(unit)
 	unit.perform_step()
 
 divident = unit.get_regA()
