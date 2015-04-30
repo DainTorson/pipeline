@@ -16,7 +16,6 @@ class Pipeline():
 		self._numbers = []
 		self._result = []
 		self._clock = clock.Clock()
-		self._active = False
 
 	def __str__(self):
 
@@ -26,6 +25,11 @@ class Pipeline():
 			result += str(unit) + "\n"
 
 		return result
+
+	def __iter__(self):
+
+		for unit in self._units:
+			yield unit
 
 	def start(self, rang, list_of_numbers):
 		"""
@@ -39,8 +43,7 @@ class Pipeline():
 			self._numbers.append((first, second))
 		self._result = []
 		self._clock.reset()
-		self._active = True
-
+		
 		for unit in self._units:
 			unit.reset()
 
@@ -49,39 +52,29 @@ class Pipeline():
 		performs one stage
 		"""
 
-		print(len(self._numbers))
-		units = self._units	
-		if len(self._numbers) == 0:
-			active_check = False
-			for unit in units:
-				if not unit.is_empty():
-					active_check = True
-					break
-			if not active_check:
-				self._active = False
-				return
+		if not self.is_active():
+			print("not active")
+			return
 
-		loaded = False
-
-		for unit_idx in range(len(units)):
+		loaded = False #checks if any pair has been loaded on that stage(only one load allowed)
+		unit_idx = 0
+		for unit in self._units:
 			if unit_idx >= self._rang:
-				break;
-			if units[unit_idx].is_empty():
-				quatient = units[unit_idx].get_regA()
-				remainder = units[unit_idx].get_regP()
-
-				if len(quatient) > 0 and len(remainder) > 0:
-					first = self.bin_list_to_int(quatient)
-					second = self.bin_list_to_int(remainder)
-					self._result.append((first, second))
-					units[unit_idx].reset()
-
-				if len(self._numbers) > 0 and not loaded:
-					pair = self._numbers.pop(0)
-					units[unit_idx].start(pair[0], pair[1])
-					loaded = True
+				break
+			if unit.is_active():
+				unit.perform_step()
 			else:
-				units[unit_idx].perform_step()
+				if unit.is_empty():
+					if len(self._numbers) > 0 and not loaded:
+						pair = self._numbers.pop(0)
+						unit.load(pair[0], pair[1])
+						loaded = True
+				else:
+					quatient = self.bin_list_to_int(unit.get_regA())
+					remainder = self.bin_list_to_int(unit.get_regP())
+					self._result.append((quatient, remainder))
+					unit.reset()
+			unit_idx += 1
 		self._clock.tick()
 
 	def int_to_bin_list(self, num):
@@ -112,10 +105,18 @@ class Pipeline():
 		return int(bin_list, 2)
 
 	def is_active(self):
-		return self._active
+		if len(self._numbers) == 0:
+			for unit in self._units:
+				if unit.is_active() or not unit.is_empty():
+					return True
+			return False
+		return True
 
 	def get_result(self):
 		return self._result
+
+	def get_time(self):
+		return self._clock.get_current_time()
 
 
 

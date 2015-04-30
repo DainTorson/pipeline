@@ -1,6 +1,9 @@
 import pipeline
+import filereader
 
-input_list = [(10, 3), (6, 2), (13, 6)]
+reader = filereader.FileReader()
+reader.set_file("input_data.txt")
+input_list = reader.read()
 
 pline = pipeline.Pipeline()
 pline.start(4, input_list)

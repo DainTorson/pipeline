@@ -5,14 +5,16 @@ class ProUnit():
 	"""
 
 	def __init__(self):
+
 		self._regA = []
 		self._regB = []
 		self._regP = []
-		self._empty = True
+		self._active = False
 		self._counter = 0
 
 	def __str__(self):
-		if self._is_active:
+		
+		if not self.is_empty():
 			regA = list(self._regA)
 			regA.reverse()
 			regB = list(self._regB)
@@ -23,11 +25,11 @@ class ProUnit():
 				" " + "B: " +  " ".join(str(value) for value in regB) + \
 				" " + "P: " +  " ".join(str(value) for value in regP)
 		else:
-			return "Inactive"
+			return "Empty"
 
-	def start(self, divident, divider):
+	def load(self, divident, divider):
 		"""
-		starts processing unit with given parameters
+		loads numbers into peocessing unit
 		"""
 		self._regA = divident
 		self._regB = divider
@@ -129,7 +131,7 @@ class ProUnit():
 		"""
 		perform one step of non-restoring division
 		"""
-		if not self._is_active:
+		if not self._active:
 			return
 
 		if self.is_regP_positive():
@@ -165,5 +167,5 @@ class ProUnit():
 		return not (len(self._regA) > 0 and len(self._regP) > 0)
 
 	def is_active(self):
-		pass
+		return self._active
 
