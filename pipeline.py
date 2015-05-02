@@ -8,11 +8,9 @@ class Pipeline():
 
 	def __init__(self):
 
-		self._num_of_processors = 8
-		self._rang = self._num_of_processors
+		self._rang = 0
+		self._digits = 0
 		self._units = []
-		for dummy_idx in range(self._num_of_processors):
-			self._units.append(pro_unit.ProUnit())
 		self._numbers = []
 		self._result = []
 		self._clock = clock.Clock()
@@ -31,21 +29,22 @@ class Pipeline():
 		for unit in self._units:
 			yield unit
 
-	def start(self, rang, list_of_numbers):
+	def start(self, rang, digits, list_of_numbers):
 		"""
 		starts pipeline with given parameters
 		"""
 		self._rang = rang
+		self._digits = digits
 		self._numbers = []
+		self._units = []
+		for dummy_idx in range(digits):
+			self._units.append(pro_unit.ProUnit())
 		for pair in list_of_numbers:
 			first = self.int_to_bin_list(pair[0])
 			second = self.int_to_bin_list(pair[1])
 			self._numbers.append((first, second))
 		self._result = []
 		self._clock.reset()
-		
-		for unit in self._units:
-			unit.reset()
 
 	def perform_stage(self):
 		"""
@@ -88,7 +87,7 @@ class Pipeline():
 		bin_list = [int(value) for value in bin_list]
 		bin_list.reverse()
 
-		while len(bin_list) != 8:
+		while len(bin_list) != self._digits:
 			bin_list.append(0)
 
 		return bin_list
