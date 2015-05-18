@@ -8,8 +8,9 @@ input_list = reader.read()
 pline = pipeline.Pipeline()
 pline.start(4, 6, input_list)
 
-while(pline.is_active()):
+while pline.is_active():
 	pline.perform_stage()
-	print(pline)
+	if pline.is_active():
+		print(pline)
 
 print(pline.get_result())

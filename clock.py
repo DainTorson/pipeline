@@ -9,11 +9,11 @@ class Clock():
 	def __str__(self):
 		return str(self._time)
 
-	def tick(self):
+	def tick(self, value):
 		"""
 		perform one tick
 		"""
-		self._time += 1
+		self._time += value
 
 	def get_current_time(self):
 		return self._time

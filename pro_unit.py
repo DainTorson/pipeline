@@ -10,7 +10,8 @@ class ProUnit():
 		self._regB = []
 		self._regP = []
 		self._active = False
-		self._counter = 0
+		self._duration = 1
+		self._last = False
 
 	def __str__(self):
 		
@@ -23,20 +24,18 @@ class ProUnit():
 			regP.reverse()
 			return "A: " + " ".join(str(value) for value in regA) + \
 				" " + "B: " +  " ".join(str(value) for value in regB) + \
-				" " + "P: " +  " ".join(str(value) for value in regP)
+				" " + "P: " +  " ".join(str(value) for value in regP) + \
+				" " + str(self._active)
 		else:
-			return "Empty"
+			return "Empty" + " " + str(self._active)
 
-	def load(self, divident, divider):
+	def load(self, divident, divider, temp_remainder):
 		"""
-		loads numbers into peocessing unit
+		loads numbers into processing unit
 		"""
-		self._regA = divident
-		self._regB = divider
-		self._regP = [0 for digit in self._regA]
-		self._regP.append(0)
-		self._counter = 0
-		self._active = True
+		self._regA = list(divident)
+		self._regB = list(divider)
+		self._regP = list(temp_remainder)
 
 	def reset(self):
 		"""
@@ -46,7 +45,6 @@ class ProUnit():
 		self._regB = []
 		self._regP = []
 		self._active = False
-		self._counter = 0
 
 	def shift(self):
 		"""
@@ -131,9 +129,6 @@ class ProUnit():
 		"""
 		perform one step of non-restoring division
 		"""
-		if not self._active:
-			return
-
 		if self.is_regP_positive():
 			self.shift()
 			self._regP = list(self.subtract(self._regP, self._regB))
@@ -146,13 +141,9 @@ class ProUnit():
 		else:
 			self._regA.insert(0, 0)
 
-		self._counter += 1
-
-		if self._counter == len(self._regA):
+		if self._last:
 			if not self.is_regP_positive():
 				self._regP = list(self.add(self._regP, self._regB))
-			self._counter = 0
-			self._active = False
 
 	def get_regP(self):
 		return self._regP
@@ -166,6 +157,19 @@ class ProUnit():
 	def is_empty(self):
 		return not (len(self._regA) > 0 and len(self._regP) > 0)
 
+	def last(self, value):
+		self._last = value
+
+	def get_duration(self):
+		return self._duration
+
+	def set_duration(self, value):
+		self._duration = value
+
+	def active(self, value):
+		self._active = value
+
 	def is_active(self):
 		return self._active
+
 

@@ -39,6 +39,9 @@ class Pipeline():
 		self._units = []
 		for dummy_idx in range(digits):
 			self._units.append(pro_unit.ProUnit())
+		self._units[len(self._units) - 1].last(True)
+		self._units[0].set_duration(2)
+		self._units[len(self._units) - 1].set_duration(3)
 		for pair in list_of_numbers:
 			first = self.int_to_bin_list(pair[0])
 			second = self.int_to_bin_list(pair[1])
@@ -50,31 +53,43 @@ class Pipeline():
 		"""
 		performs one stage
 		"""
-
 		if not self.is_active():
-			print("not active")
 			return
 
-		loaded = False #checks if any pair has been loaded on that stage(only one load allowed)
-		unit_idx = 0
-		for unit in self._units:
-			if unit_idx >= self._rang:
-				break
-			if unit.is_active():
-				unit.perform_step()
-			else:
-				if unit.is_empty():
-					if len(self._numbers) > 0 and not loaded:
-						pair = self._numbers.pop(0)
-						unit.load(pair[0], pair[1])
-						loaded = True
+		last = self._units[len(self._units) - 1]
+
+		if not last.is_empty():
+			quatient = self.bin_list_to_int(last.get_regA())
+			remainder = self.bin_list_to_int(last.get_regP())
+			self._result.append((quatient, remainder))
+
+		for idx in range(len(self._units) - 1, -1, -1):
+			if idx == 0:
+				self._units[idx].active(True)
+				if len(self._numbers) != 0 and not self.is_full():
+					pair = self._numbers.pop(0)
+					remainder = [0 for digit in pair[0]]
+					remainder.append(0)
+					self._units[idx].load(pair[0], pair[1], remainder)
+					self._units[idx].perform_step()
+					if not self._units[idx].is_active():
+						self._units[idx].active(True)
 				else:
-					quatient = self.bin_list_to_int(unit.get_regA())
-					remainder = self.bin_list_to_int(unit.get_regP())
-					self._result.append((quatient, remainder))
-					unit.reset()
-			unit_idx += 1
-		self._clock.tick()
+					self._units[idx].reset()
+			elif self._units[idx - 1].is_active():
+				self._units[idx].load(self._units[idx - 1].get_regA(),
+					self._units[idx - 1].get_regB(),
+					self._units[idx - 1].get_regP())
+				self._units[idx].perform_step()
+				if not self._units[idx].is_active():
+					self._units[idx].active(True)
+			else:
+				self._units[idx].reset()
+
+		if self.is_active():
+			durations = [unit.get_duration() for unit in self._units
+			if unit.is_active()]
+			self._clock.tick(max(durations))
 
 	def int_to_bin_list(self, num):
 		"""
@@ -104,13 +119,27 @@ class Pipeline():
 		return int(bin_list, 2)
 
 	def is_active(self):
+
 		if len(self._numbers) == 0:
 			for unit in self._units:
-				if unit.is_active() or not unit.is_empty():
+				if not unit.is_empty():
 					return True
 			return False
 		return True
 
+
+	def is_full(self):
+
+		counter = 0
+		for unit in self._units:
+			if unit.is_active():
+				counter += 1
+
+		if counter > self._rang:
+			return True
+		else:
+			return False
+			
 	def get_result(self):
 		return self._result
 
